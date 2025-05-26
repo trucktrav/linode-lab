@@ -1,0 +1,40 @@
+---
+
+- name: fastfetch | Find latest release of fastfetch
+  community.general.github_release:
+    user: fastfetch-cli
+    repo: fastfetch
+    action: latest_release
+  register: fastfetch_latest_release
+  delegate_to: localhost
+  run_once: true
+  become: false
+  when: manage_linux_fastfetch_version == 'latest'
+
+- name: fastfetch | Set fastfetch latest version
+  ansible.builtin.set_fact:
+    manage_linux_fastfetch_version: "{{ fastfetch_latest_release.tag if manage_linux_fastfetch_version == 'latest' else manage_linux_fastfetch_version }}"
+
+- name: fastfetch | Check fastfetch install state/version
+  ansible.builtin.command: fastfetch --version
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  register: fastfetch_install_state
+
+- name: fastfetch | Install/update Fastfetch
+  when: >-
+    fastfetch_install_state.rc != 0
+    or fastfetch_install_state.stdout.split()[1] != manage_linux_fastfetch_version
+  block:
+    - name: fastfetch | Fail if architecture is not supported
+      ansible.builtin.fail:
+        msg: "Unsupported architecture: {{ ansible_architecture }}"
+      when: manage_linux_fastfetch_architecture == "unknown"
+
+    - name: fastfetch | Install Fastfetch
+      ansible.builtin.apt:
+        deb:
+          "https://github.com/fastfetch-cli/fastfetch/releases/download/{{ manage_linux_fastfetch_version }}\
+          /fastfetch-linux-{{ manage_linux_fastfetch_architecture }}.deb"
+        state: present

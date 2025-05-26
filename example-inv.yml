@@ -1,0 +1,4 @@
+# Hosts grouped into a group (e.g., web servers)
+webservers:
+  hosts:  
+    some-lab:

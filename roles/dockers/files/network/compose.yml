@@ -1,0 +1,18 @@
+networks:
+  dockers_lan:
+    driver: ipvlan
+    name: dockers_lan
+    ipam:
+      #driver: ipvlan
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+    driver_opts:
+      parent: ens18
+
+services:
+  fake:
+    image: alpine:latest
+    networks:
+      dockers_lan:
+        ipv4_address: 192.168.1.49

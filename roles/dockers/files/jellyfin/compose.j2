@@ -1,0 +1,30 @@
+networks:
+  {{ dockers_lan_name }}:
+    external: true
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    #user: uid:gid
+    volumes:
+      - '{{ dockers_path }}{{ dockers_jellyfin_config_folder }}:/config'
+      - '{{ dockers_path }}{{ dockers_jellyfin_cache_folder }}:/cache'
+      - type: bind
+        source: /mnt/media
+        target: /media
+      - type: bind
+        source: /mnt/media2
+        target: /media2
+        read_only: true
+      # # Optional - extra fonts to be used during transcoding with subtitle burn-in
+      # - type: bind
+      #   source: /path/to/fonts
+      #   target: /usr/local/share/fonts/custom
+      #   read_only: true
+    restart: always
+    environment:
+      - JELLYFIN_PublishedServerUrl=http://jellyfin.herbylab.lan
+    networks:
+      {{ dockers_lan_name }}:
+        ipv4_address: {{ dockers_jellyfin_ip }}

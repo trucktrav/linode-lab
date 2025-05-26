@@ -1,0 +1,25 @@
+networks:
+  dockers_lan:
+    external: true
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    # For DHCP it is recommended to remove these ports and instead add: network_mode: "host"
+    ports:
+      - "8000:8000"
+      - "9443:9443"
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - './portainer_data:/data'
+    restart: always
+    networks:
+      dockers_lan:
+        ipv4_address: 192.168.1.52
+    healthcheck:
+      test: ["CMD", "curl", "-sS", "http://localhost:9000 || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+

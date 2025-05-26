@@ -1,0 +1,52 @@
+---
+
+manage_linux_fastfetch_version: latest
+# wy tf am I supporting risc? lmao
+manage_linux_fastfetch_architecture: >-
+  {{
+    'amd64' if ansible_architecture == 'x86_64' else
+    'aarch64' if ansible_architecture == 'aarch64' else
+    'armv7l' if ansible_architecture == 'armv7l' else
+    'riscv64' if ansible_architecture == 'riscv64' else
+    'unknown'
+  }}
+# debian mlocate
+manage_linux_default_apps:
+  # - apparmor
+  # - apparmor-utils
+  # - autofs
+  # - build-essential
+  # - ca-certificates
+  # - cifs-utils
+  # - curl
+  # - dnsutils
+  # - fdisk
+  # - fuse
+  # - gcc
+  # - gdisk
+  # - git
+  # - hdparm
+  # - htop
+  # - iftop
+  # - iotop
+  # - locate
+  # - ncdu
+  # - net-tools
+  # - nfs-common
+  # - nfs-kernel-server
+  # - parted
+  # - python3-pip
+  # - rsync
+  # - samba
+  # - software-properties-common
+  - tmux
+  # - tree
+  # - vim
+  # - zip
+  # - apprise
+  - python3-yaml
+  - certbot 
+  - python3-certbot-nginx
+
+  # - python3-psutil
+  # - python3-requests

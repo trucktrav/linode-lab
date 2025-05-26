@@ -1,0 +1,73 @@
+# Pihole and Unbound Docker Compose Configuration
+{{ ansible_managed | comment }}
+# OK to edit this
+
+networks:
+  {{ dockers_lan_name }}:
+    external: true
+
+services:
+  pihole:
+    container_name: pihole
+    hostname: pihole
+    image: pihole/pihole:latest # remember to change this if you're using rpi
+    depends_on:
+      unbound:
+        condition: service_started
+    networks:
+      {{ dockers_lan_name }}:
+        ipv4_address: {{ dockers_pihole_ip }}
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "85:80/tcp"
+      - "443:443/tcp"
+    environment:
+      TZ: 'America/Denver'
+      FTLCONF_webserver_api_password: {{ dockers_pihole_password }}
+      PIHOLE_DNS_: '{{ dockers_unbound_ip }}#{{ dockers_unbound_port }}'
+      PIHOLE_UID: 1000
+      PIHOLE_GID: 1000
+      #FTLCONF_dns_listeningMode: 'all'
+    volumes:
+      - {{ dockers_path }}{{ dockers_pihole_etc_pihole_folder }}:/etc/pihole/
+      - {{ dockers_path }}{{ dockers_pihole_etc_dnsmasq_folder }}:/etc/dnsmasq.d/
+    restart: unless-stopped
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.pihole.entrypoints=http"
+#      - "traefik.http.routers.pihole.rule=Host(`pihole.yourdomain.com`)"
+#      - "traefik.http.middlewares.pihole-https-redirect.redirectscheme.scheme=https"
+#      - "traefik.http.routers.pihole.middlewares=pihole-https-redirect"
+#      - "traefik.http.routers.pihole-secure.entrypoints=https"
+#      - "traefik.http.routers.pihole-secure.rule=Host(`pihole.yourdomain.com`)"
+#      - "traefik.http.routers.pihole-secure.tls=true"
+#      - "traefik.http.routers.pihole-secure.service=pihole"
+#      - "traefik.http.services.pihole.loadbalancer.server.port=80"
+#      - "traefik.docker.network=proxy"
+   
+  unbound:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: unbound:latest
+    container_name: unbound
+    networks:
+      {{ dockers_lan_name }}:
+        ipv4_address: {{ dockers_unbound_ip }}
+    #volumes:
+    #  - {{ dockers_path }}{{ dockers_unbound_config_folder }}:/etc/unbound
+    ports:
+      - "{{ dockers_unbound_port }}:53/tcp"
+      - "{{ dockers_unbound_port }}:53/udp"
+    healthcheck:
+      test: ["CMD-SHELL","dig", "google.com", "@127.0.0.1 -p {{ dockers_unbound_port }} || exit 1"]
+      interval: 5s
+      timeout: 1s
+      retries: 3
+    environment:
+      - TIMEZONE=America/Denver
+      - CONFIG_PATH=/config/
+      - CONTAINER_NAME=unbound
+      - SETUP_TYPE=MANUAL
+    restart: unless-stopped

@@ -1,0 +1,9 @@
+---
+- name: apps | Install defaults
+  ansible.builtin.apt:
+    update_cache: false
+    name: "{{ manage_linux_default_apps + (extra_apps | default([])) }}"
+    state: present
+  register: apt_defaults
+  retries: 3
+  until: apt_defaults is success

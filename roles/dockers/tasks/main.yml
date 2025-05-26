@@ -1,0 +1,182 @@
+---
+# - name: Ensure Docker service is running
+#   ansible.builtin.service:
+#     name: docker
+#     state: started
+#     enabled: true
+
+# - name: Dockers | Create container directorys
+#   ansible.builtin.file:
+#     path: '{{ dockers_path }}/{{ dockers_containers_item }}'
+#     state: directory
+#     owner: '{{ user }}'  # Change if needed
+#     group: root  # Change if needed
+#     mode: '0775'
+#   loop: '{{ dockers_containers }}'
+#   loop_control:
+#     loop_var: dockers_containers_item
+
+# - name: Dockers | Create container folders
+#   ansible.builtin.file:
+#     path: '{{ dockers_path }}{{ dockers_containers_item }}'
+#     state: directory
+#     owner: '{{ user }}'  # Change if needed
+#     group: root  # Change if needed
+#     mode: '0775'
+#   loop: '{{ dockers_folders }}'
+#   loop_control:
+#     loop_var: dockers_containers_item
+
+# - name: Dockers | Copy environment files
+#   ansible.builtin.template:
+#     src: './files/{{ dockers_containers_item }}/compose_env.j2'
+#     dest: '{{ dockers_path }}/{{ dockers_containers_item }}/compose.env'
+#     owner: '{{  user }}'
+#     group: root
+#     mode: '0664'
+#   loop: '{{ dockers_containers }}'
+#   loop_control:
+#     loop_var: dockers_containers_item
+
+# - name: Dockers | Copy compose files
+#   ansible.builtin.template:
+#     src: './files/{{ dockers_containers_item }}/compose.j2'
+#     dest: '{{ dockers_path }}/{{ dockers_containers_item }}/compose.yml'
+#     owner: '{{  user }}'
+#     group: root
+#     mode: '0664'
+#   loop: '{{ dockers_containers }}'
+#   loop_control:
+#     loop_var: dockers_containers_item
+
+# - name: Dockers | Copy container files
+#   ansible.builtin.copy:
+#     src: '{{ dockers_files_item.key }}'
+#     dest: '{{ dockers_files_item.value }}'
+#     owner: '{{  user }}'
+#     group: root
+#     mode: '0664'
+#   loop: '{{ dockers_files | dict2items }}'
+#   loop_control:
+#     loop_var: dockers_files_item
+
+# - name: Dockers | Stop systemd-resolved service for pihole
+#   ansible.builtin.systemd:
+#     name: systemd-resolved
+#     state: stopped
+#     enabled: false
+
+- name: Update package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Create project directory
+  file:
+    path: "{{ project_path }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Create SSL directory
+  file:
+    path: "{{ ssl_cert_path }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Create nginx config directory
+  file:
+    path: "{{ project_path }}/nginx"
+    state: directory
+    mode: '0755'
+
+- name: Deploy SSL certificate (public)
+  copy:
+    src: ../files/openwebui/cert.pem
+    dest: "{{ ssl_cert_path }}/cert.pem"
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Deploy SSL private key (encrypted)
+  copy:
+    src: ../files/openwebui/key.pem
+    dest: "{{ ssl_cert_path }}/key.pem"
+    mode: '0600'
+    owner: root
+    group: root
+  no_log: true
+
+- name: Deploy nginx configuration
+  copy:
+    src: ../files/openwebui/nginx.conf
+    dest: "{{ project_path }}/nginx/nginx.conf"
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Deploy docker-compose file
+  copy:
+    src: ../files/openwebui/compose.yml
+    dest: "{{ project_path }}/compose.yml"
+    mode: '0644'
+    owner: root
+    group: root
+
+    # - name: Start OpenWebUI services
+    #   docker_compose:
+    #     project_src: "{{ project_path }}"
+    #     state: present
+    #   environment:
+    #     DOCKER_CLIENT_TIMEOUT: "120"
+    #     COMPOSE_HTTP_TIMEOUT: "120"
+
+    # - name: Wait for services to be ready
+    #   wait_for:
+    #     port: 443
+    #     host: "{{ ansible_host }}"
+    #     timeout: 60
+
+    # - name: Display success message
+    #   debug:
+    #     msg: 
+    #       - "OpenWebUI is now running!"
+    #       - "Access it at: https://herbylab.dev"
+    #       - "Services started: nginx (reverse proxy) and openwebui"
+
+
+# - name: Dockers | Create and start containers
+#   community.docker.docker_compose_v2:
+#     project_src: '{{ dockers_path }}/{{ dockers_containers_item }}/'
+#   register: output
+#   loop: '{{ dockers_containers }}'
+#   loop_control:
+#     loop_var: dockers_containers_item
+
+# - name: Stage Scrutiny
+#   ansible.builtin.include_tasks:
+#     file: scrutiny_stage.yml
+
+# - name: Configure Notifications
+#   ansible.builtin.include_tasks:
+#     file: scrutiny_notify.yml
+#   when: scrutiny_mode != 'collector'
+
+# - name: Deploy Scrutiny
+#   ansible.builtin.include_tasks:
+#     file: scrutiny_deploy.yml
+
+# - name: Set up pihole
+#   ansible.builtin.include_tasks:
+#     file: pihole.yml
+
+# - debug:
+#     var: output
+#     verbosity: 1
+
+# - name: Display access URL
+#   ansible.builtin.debug:
+#     msg: 'Portainer is available at https://{{ inventory_hostname }}:9443'

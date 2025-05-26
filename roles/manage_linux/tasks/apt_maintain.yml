@@ -1,0 +1,12 @@
+---
+
+- name: apt_maintain | Upgrade all packages
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+    upgrade: dist
+
+- name: apt_maintain | Remove unused packages
+  ansible.builtin.apt:
+    autoremove: true
+    autoclean: true

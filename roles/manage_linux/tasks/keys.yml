@@ -1,0 +1,21 @@
+---
+- name: keys | Add SSH keys from GitHub
+  ansible.posix.authorized_key:
+    user: "{{ user }}"
+    state: present
+    key: https://github.com/{{ github_username }}.keys
+  when: ssh_key_option == 'github'
+
+- name: keys | Add SSH keys from URL
+  ansible.posix.authorized_key:
+    user: "{{ user }}"
+    state: present
+    key: "{{ ssh_key_url }}"
+  when: ssh_key_option == 'url'
+
+- name: keys | Add SSH keys from local file
+  ansible.posix.authorized_key:
+    user: "{{ user }}"
+    state: present
+    key: "{{ lookup('file', ssh_key_file) }}"
+  when: ssh_key_option == 'file'

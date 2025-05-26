@@ -1,0 +1,4 @@
+user: root
+ANSIBLE_VAULT_PASSWORD_FILE: somefile
+fastfetch_motd: true
+manage_zsh: true

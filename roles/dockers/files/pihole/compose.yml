@@ -1,0 +1,85 @@
+networks:
+  dockers_lan:
+    external: true
+
+services:
+  pihole:
+    container_name: pihole
+    hostname: pihole
+    image: pihole/pihole:latest # remember to change this if you're using rpi
+    depends_on:
+      unbound:
+        condition: service_started
+    networks:
+      dockers_lan:
+        ipv4_address: 192.168.1.50
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "85:80/tcp"
+      - "443:443/tcp"
+    environment:
+      TZ: 'America/Denver'
+      #FTLCONF_webserver_api_password: 'password'
+      PIHOLE_DNS_: '192.168.1.51#5335'
+      FTLCONF_dns_listeningMode: 'all'
+    volumes:
+      - ./pihole/etc-pihole/:/etc/pihole/
+      - ./pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/
+    restart: unless-stopped
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.pihole.entrypoints=http"
+#      - "traefik.http.routers.pihole.rule=Host(`pihole.yourdomain.com`)"
+#      - "traefik.http.middlewares.pihole-https-redirect.redirectscheme.scheme=https"
+#      - "traefik.http.routers.pihole.middlewares=pihole-https-redirect"
+#      - "traefik.http.routers.pihole-secure.entrypoints=https"
+#      - "traefik.http.routers.pihole-secure.rule=Host(`pihole.yourdomain.com`)"
+#      - "traefik.http.routers.pihole-secure.tls=true"
+#      - "traefik.http.routers.pihole-secure.service=pihole"
+#      - "traefik.http.services.pihole.loadbalancer.server.port=80"
+#      - "traefik.docker.network=proxy"
+  unbound:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: unbound:latest
+    container_name: unbound
+    networks:
+      dockers_lan:
+        ipv4_address: 192.168.1.51
+    volumes:
+      - ./unbound/config:/etc/unbound
+      - ./unbound/logs:/logs
+    ports:
+      - "5335:53/tcp"
+      - "5335:53/udp"
+    healthcheck:
+      test: ["CMD-SHELL","dig", "google.com", "@127.0.0.1 -p 5335 || exit 1"]
+      interval: 5s
+      timeout: 1s
+      retries: 3
+    restart: unless-stopped
+#   unbound:
+#     container_name: unbound
+#     image: tiredofit/unbound:latest # remember to change this if you're using rpi
+#     networks:
+#       dockers_lan:
+#         ipv4_address: 192.168.1.51
+#     environment:
+#       - TIMEZONE=America/Denver
+#       - CONFIG_PATH=/config/
+#       - CONTAINER_NAME=unbound-herbylab
+#       - SETUP_TYPE=MANUAL
+#     volumes:
+# #      - ./docker/unbound:/opt/pihole/unbound_config
+#       - ./unbound/config:/config
+#       - ./unbound/logs:/logs
+#     ports:
+#       - "5335:53/tcp"
+#       - "5335:53/udp"
+# #    healthcheck:
+# #      test: [Non]
+# #      interval: 20s
+# #      timeout: 10s
+#     restart: unless-stopped

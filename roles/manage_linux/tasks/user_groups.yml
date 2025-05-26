@@ -1,0 +1,19 @@
+---
+- name: user_groups | Create groups
+  ansible.builtin.group:
+    name: "{{ manage_linux_user_groups_group_item }}"
+    state: present
+  loop: "{{ users | map(attribute='groups') | flatten | unique }}"
+  loop_control:
+    loop_var: manage_linux_user_groups_group_item
+
+- name: user_groups | Create users
+  ansible.builtin.user:
+    name: "{{ manage_linux_user_groups_user_item.name }}"
+    groups: "{{ manage_linux_user_groups_user_item.groups }}"
+    append: "{{ manage_linux_user_groups_user_item.append | default(true) }}"
+    create_home: "{{ manage_linux_user_groups_user_item.create_home | default(false) }}"
+    shell: "{{ manage_linux_user_groups_user_item.shell | default('/bin/bash') }}"
+  loop: "{{ users }}"
+  loop_control:
+    loop_var: manage_linux_user_groups_user_item

@@ -1,0 +1,21 @@
+# Network Docker Compose Configuration
+{{ ansible_managed | comment }}
+# OK to edit this
+
+networks:
+  {{ dockers_lan_name }}:
+    driver: ipvlan
+    name: {{ dockers_lan_name }}
+    ipam:
+      config:
+        - subnet: {{ dockers_lan_subnet }}
+          gateway: {{ dockers_lan_gateway }}
+    driver_opts:
+      parent: {{ dockers_lan_interface }}
+
+services:
+  fake:
+    image: alpine:latest
+    networks:
+      {{ dockers_lan_name }}:
+        ipv4_address: {{ dockers_fake_ip }}

@@ -1,0 +1,30 @@
+networks:
+  {{ dockers_lan_name }}:
+    external: true
+
+services:
+  plex:
+    image: plexinc/pms-docker
+    container_name: plex
+    # For DHCP it is recommended to remove these ports and instead add: network_mode: "host"
+    ports:
+      - "32400:32400/tcp"
+      - "3005:3005/tcp"
+      - "8324:8324/tcp"
+      - "32469:32469/tcp"
+      - "1900:1900/udp"
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+    volumes:
+      - '{{ dockers_path }}{{ dockers_plex_database_folder }}:/config'
+      - '{{ dockers_path }}{{ dockers_plex_transcode_folder }}:/transcode'
+      - '{{ dockers_media_path }}:/data'
+    environment:
+      - TZ=America/Denver
+      - PLEX_CLAIM=claim-Wbqd-hzWsZK-yL4hU835
+    restart: always
+    networks:
+      {{ dockers_lan_name }}:
+        ipv4_address: {{ dockers_plex_ip }}

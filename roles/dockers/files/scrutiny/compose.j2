@@ -1,0 +1,24 @@
+networks:
+  {{ dockers_lan_name }}:
+    external: true
+
+services:
+  scrutiny:
+    container_name: scrutiny
+    image: "{{ scrutiny_image }}"
+    ports:
+      - "{{ scrutiny_ports1}}"
+      - "{{ scrutiny_ports2}}"
+    volumes:
+      - "{{ scrutiny_volumes1 }}"
+      - "{{ scrutiny_volumes2 }}"
+      - "{{ scrutiny_volumes3 }}"
+      - "{{ scrutiny_volumes4 }}"
+      - "{{ scrutiny_volumes5 }}"
+    privileged: true
+    restart: unless-stopped
+    environment:
+      COLLECTOR_API_ENDPOINT: "{{ scrutiny_master_url if scrutiny_mode == 'collector' else omit }}"
+    networks:
+      {{ dockers_lan_name }}:
+        ipv4_address: {{ dockers_scrutiny_ip }}

@@ -1,0 +1,101 @@
+---
+dockers_path: /opt/docker
+dockers_lan_name: docker_lan
+
+project_path: "{{ dockers_path }}/openwebui"
+ssl_cert_path: "{{ project_path }}/nginx/ssl"
+
+dockers_unbound_port: 5335
+dockers_lan_subnet: 192.168.1.0/24
+dockers_lan_proxy:
+dockers_lan_gateway: 192.168.1.1
+dockers_lan_interface: ens18
+dockers_media_path: /mnt/media
+dockers_portainer_socker: /var/run/docker.sock
+
+dockers_pihole_password: '{{ dockers_secret_pihole_password }}'
+
+dockers_containers:
+  - openwebui
+
+# ip address for docker containers
+
+# openwebui folders
+dockers_openwebui_folder: "{{ project_path }}/openwebui"
+dockers_openwebui_config_folder: "{{ project_path }}/openwebui/config"
+dockers_openwebui_nginx_folder: "{{ project_path }}/nginx"
+dockers_openwebui_ssl_folder: "{{ project_path }}/nginx/ssl"
+
+
+dockers_folders:
+  - '{{ dockers_pihole_folder }}'
+  - '{{ dockers_unbound_folder }}'
+  - '{{ dockers_unbound_config_folder }}'
+  - '{{ dockers_pihole_etc_pihole_folder }}'
+  - '{{ dockers_pihole_etc_dnsmasq_folder }}'
+  - '{{ dockers_plex_folder }}'
+  - '{{ dockers_plex_database_folder }}'
+  - '{{ dockers_plex_transcode_folder }}'
+  - '{{ dockers_jellyfin_folder }}'
+  - '{{ dockers_jellyfin_config_folder }}'
+  - '{{ dockers_jellyfin_cache_folder }}'
+  - '{{ dockers_portainer_folder }}'
+  - '{{ dockers_portainer_data_folder }}'
+  - '{{ dockers_uptimekuma_folder }}'
+  - '{{ dockers_uptimekuma_data_folder }}'
+  - '{{ dockers_dashy_folder }}'
+  - '{{ dockers_dashy_user_folder }}'
+
+dockers_files:
+  # openwebui
+  openwebui_config: "{{ project_path }}/openwebui/config"
+  openwebui_nginx_conf: "{{ project_path }}/nginx/nginx.conf"
+  openwebui_ssl_cert: "{{ ssl_cert_path }}/fullchain.pem"
+  openwebui_ssl_key: "{{ ssl_cert_path }}/privkey.pem"
+
+  # pihole
+  pihole_config: "{{ dockers_pihole_etc_pihole_folder }}/pihole-FTL.conf"
+  pihole_dnsmasq_config: "{{ dockers_pihole_etc_dnsmasq_folder }}/01-pihole.conf"
+
+  # unbound
+  unbound_config: "{{ dockers_unbound_config_folder }}/unbound.conf"
+
+  # plex
+  plex_config: "{{ dockers_plex_database_folder }}/Preferences.xml"
+
+  # jellyfin
+  jellyfin_config: "{{ dockers_jellyfin_config_folder }}/system.xml"
+
+  # portainer
+  portainer_config: "{{ dockers_portainer_data_folder }}/portainer.db"
+
+  # uptime-kuma
+  uptimekuma_config: "{{ dockers_uptimekuma_data_folder }}/config.json"
+
+  # dashy
+  dashy_config: "{{ dockers_dashy_user_folder }}/config.yml"
+
+  # heimdall
+  heimdall_config: "{{ dockers_heimdall_config_folder }}/config.json"
+
+
+# scrutiny vars
+dockers_scrutiny_image: >
+  {% if scrutiny_mode == 'collector' %}
+  ghcr.io/analogj/scrutiny:master-collector
+  {% else %}
+  ghcr.io/analogj/scrutiny:master-omnibus
+  {% endif %}
+
+dockers_scrutiny_ports1: "{{ scrutiny_webui_port }}:8080"
+dockers_scrutiny_ports2: 8086:8086
+
+dockers_scrutiny_volumes1: "{{ dockers_scrutiny_config_path }}:/opt/scrutiny/config"
+dockers_scrutiny_volumes2: "{{ dockers_scrutiny_influxdb_path }}:/opt/scrutiny/influxdb"
+dockers_scrutiny_volumes3: "{{ dockers_scrutiny_config_file }}:/opt/scrutiny/config/scrutiny.yaml"
+dockers_scrutiny_volumes4: /run/udev:/run/udev:ro
+dockers_scrutiny_volumes5: /dev:/dev:ro
+
+dockers_scrutiny_config_path: /opt/docker/scrutiny/data
+dockers_scrutiny_config_file: /opt/docker/scrutiny/data/scrutiny.yaml
+dockers_scrutiny_influxdb_path: /opt/docker/scrutiny/influxdb2

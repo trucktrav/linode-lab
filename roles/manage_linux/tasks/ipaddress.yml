@@ -1,0 +1,43 @@
+---
+- name: ipaddress | Detect OS Family
+  ansible.builtin.setup:
+  register: system_info
+
+- name: ipaddress | Set Static IP for Ubuntu/Debian (Netplan)
+  block:
+    - name: ipaddress | Generate Netplan configuration
+      ansible.builtin.copy:
+        dest: "/etc/netplan/01-static-ip.yaml"
+        content: |
+          network:
+            version: 2
+            ethernets:
+              {{ interface_name }}:
+                addresses:
+                  - {{ manage_linux_ip_address }}/{{ manage_linux_netmask }}
+                gateway4: {{ manage_linux_gateway }}
+                nameservers:
+                  addresses: {{ manage_linux_dns_servers | to_yaml }}
+      mode: '0644'
+
+    - name: ipaddress | Apply Netplan changes
+      ansible.builtin.command: netplan apply
+      changed_when: true
+  when: system_info.ansible_facts.ansible_distribution in ["Ubuntu", "Debian"]
+
+- name: ipaddress | Set Static IP for RHEL/CentOS (NetworkManager)
+  block:
+    - name: ipaddress | Configure NetworkManager connection
+      ansible.builtin.template:
+        src: ifcfg-template.j2
+        dest: "/etc/sysconfig/network-scripts/ifcfg-{{ manage_linux_interface_name }}"
+        mode: '0644'
+
+    - name: ipaddress | Restart NetworkManager service
+      ansible.builtin.service:
+        name: ipaddress | NetworkManager
+        state: restarted
+  when: system_info.ansible_facts.ansible_distribution in ["CentOS", "RedHat", "Rocky", "AlmaLinux"]
+
+- name: ipaddress | Reboot server to apply changes
+  ansible.builtin.reboot:

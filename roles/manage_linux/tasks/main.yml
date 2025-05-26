@@ -1,0 +1,33 @@
+---
+# - name: Manage_linux | Set timezone
+#   community.general.timezone:
+#     name: "{{ timezone }}"
+#   when: timezone
+
+# - name: Manage_linux | Set up passwordless sudo
+#   ansible.builtin.include_tasks:
+#     file: passwdless_sudo.yml
+#   when: passwordless_sudo
+
+# - name: Manage_linux | Create and append users/groups
+#   ansible.builtin.include_tasks:
+#     file: user_groups.yml
+- name: Manage_linux | Apt maintenance
+  ansible.builtin.include_tasks:
+    file: apt_maintain.yml
+    
+- name: Manage_linux | Install packages
+  ansible.builtin.include_tasks:
+    file: apps.yml
+
+# - name: Manage_linux | Install Fastfetch
+#   ansible.builtin.include_tasks:
+#     file: fastfetch.yml
+#   when: fastfetch_motd or install_fastfetch
+
+# - name: Manage_linux | Apply SSH keys
+#   ansible.builtin.include_tasks:
+#     file: keys.yml
+#   when: ssh_key_option != 'none'
+
+
