@@ -19,3 +19,4 @@ test_vars.yml
 *secret*
 *password*
 !inventories/inventory.example.yml
+*.pem
